@@ -117,6 +117,13 @@ void userMenu() {
                 kBank.withDraw();
             }
                 break;
+            case 4: {
+                cout << "===========================================" << endl;
+                cout << "                  HISTORY                  " << endl;
+                cout << "===========================================" << endl << endl;
+                kBank.history();
+            }
+                break;
         }
     } while (option != 6);
 }

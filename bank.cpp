@@ -251,3 +251,47 @@ void KBank::update(User user) {
     remove("user.txt");
     rename("tmp_user.txt", "user.txt");
 }
+
+void showHistory(History history) {
+    if (history.transactionType == "deposit" || history.transactionType == "WITHDRAW") {
+        string sign = history.transactionType == "WITHDRAW" ? "-" : "+";
+        cout << "Transaction Type : " << history.transactionType << endl;;
+        cout << "Transaction Time : " << timeStampToDateTime(history.transactionTime.c_str());
+        cout << "Amount : " << sign << history.amount << endl << endl;
+    }
+
+    if (history.transactionType == "TRANSFER") {
+        cout << "Transfer From : " << history.transferFrom << endl;;
+        cout << "Transfer To : " << history.transferTo << endl;;
+        cout << "Transaction Type : " << history.transactionType << endl;;
+        cout << "Transaction Time : " << timeStampToDateTime(history.transactionTime.c_str());
+        cout << "Amount : " << history.amount << endl << endl;
+    }
+}
+
+void KBank::history() {
+    History history;
+    User user = findByUserName(currentUserName);
+    int index = 0;
+    string value;
+    for (auto &ch: user.history) {
+        if (ch == '|') {
+            showHistory(history);
+            index = 0;
+        } else if (ch == ',') {
+            index++;
+            if (index == 1) history.transferFrom = value;
+            if (index == 2) history.transferTo = value;
+            if (index == 3) history.transactionTime = value;
+            if (index == 4) history.transactionType = value;
+            if (index == 5) history.amount = stoi(value);;
+            if (index == 6) history.notes = value;
+            value = "";
+        } else {
+            string st(1, ch);
+            value += st;
+        }
+    }
+}
+
+//zinkowin zinkowin USER 09797256920 zinko.developer@gmail.com 3500 | -,-,1669917698,deposit,500,-|-,-,1669917698,WITHDRAW,500,-|

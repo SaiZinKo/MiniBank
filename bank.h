@@ -29,6 +29,8 @@ namespace Bank {
 
         void withDraw();
 
+        void history();
+
     private:
         std::string currentUserName;
 
