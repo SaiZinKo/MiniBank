@@ -51,7 +51,9 @@ namespace Bank {
 
         void update(User user);
 
-        void showHistory(History history);
+        void showHistory(User user);
+
+        void printHistory(History history, string userName);
 
         void showData(User *user);
     };

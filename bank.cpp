@@ -58,7 +58,7 @@ void KBank::registration() {
     }
 
     cout << "===========================================" << endl;
-    cout << "             Account Registration            " << endl;
+    cout << "             Account Registration          " << endl;
     cout << "===========================================" << endl << endl;
     cout << "Enter Use Name : ";
     cin >> user.userName;
@@ -213,29 +213,8 @@ void KBank::transfer() {
 }
 
 void KBank::history() {
-    History history;
     User user = findByUserName(currentUserName);
-    int index = 0;
-    string value;
-    for (auto &ch: user.history) {
-        if (ch == '|') {
-            history.notes = value;
-            showHistory(history);
-            value = "";
-            index = 0;
-        } else if (ch == ',') {
-            index++;
-            if (index == 1) history.transferFrom = value;
-            if (index == 2) history.transferTo = value;
-            if (index == 3) history.transactionTime = value;
-            if (index == 4) history.transactionType = value;
-            if (index == 5) history.amount = stoi(value);;
-            value = "";
-        } else {
-            string st(1, ch);
-            value += st;
-        }
-    }
+    showHistory(user);
 }
 
 void KBank::changePassword() {
@@ -360,27 +339,7 @@ void KBank::viewAllUsersTransactions() {
         if (userPtr != nullptr) {
             if (!userPtr->userName.empty()) {
                 if (userPtr->role != "ADMIN") {
-                    int index = 0;
-                    string value;
-                    for (auto &ch: userPtr->history) {
-                        if (ch == '|') {
-                            history.notes = value;
-                            showHistory(history);
-                            value = "";
-                            index = 0;
-                        } else if (ch == ',') {
-                            index++;
-                            if (index == 1) history.transferFrom = value;
-                            if (index == 2) history.transferTo = value;
-                            if (index == 3) history.transactionTime = value;
-                            if (index == 4) history.transactionType = value;
-                            if (index == 5) history.amount = stoi(value);;
-                            value = "";
-                        } else {
-                            string st(1, ch);
-                            value += st;
-                        }
-                    }
+                    showHistory(*userPtr);
                 }
                 user.userName = "";
             } else {
@@ -442,8 +401,33 @@ void KBank::showData(User *user) {
     cout << "Amount : " << user->amount << endl << endl;
 }
 
-void KBank::showHistory(History history) {
-    string sign = history.transactionType == "WITHDRAW" || history.transferFrom == currentUserName ? "-" : "+";
+void KBank::showHistory(User user) {
+    History history;
+    int index = 0;
+    string value;
+    for (auto &ch: user.history) {
+        if (ch == '|') {
+            history.notes = value;
+            printHistory(history, user.userName);
+            value = "";
+            index = 0;
+        } else if (ch == ',') {
+            index++;
+            if (index == 1) history.transferFrom = value;
+            if (index == 2) history.transferTo = value;
+            if (index == 3) history.transactionTime = value;
+            if (index == 4) history.transactionType = value;
+            if (index == 5) history.amount = stoi(value);;
+            value = "";
+        } else {
+            string st(1, ch);
+            value += st;
+        }
+    }
+}
+
+void KBank::printHistory(History history, string userName) {
+    string sign = history.transactionType == "WITHDRAW" || history.transferFrom == userName ? "-" : "+";
 
     if (history.transactionType == "DEPOSIT" || history.transactionType == "WITHDRAW") {
         cout << "Transaction Type : " << history.transactionType << endl;

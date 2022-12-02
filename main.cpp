@@ -73,6 +73,7 @@ void adminMenu() {
         cout << "===========================================" << endl;
         cout << "                 ADMIN MENU                " << endl;
         cout << "===========================================" << endl << endl;
+        cout << "Name : " << kBank.getCurrentUserName() << endl << endl;
         cout << "1. View All Users" << endl;
         cout << "2. View All Transactions" << endl;
         cout << "3. Log Out" << endl;
