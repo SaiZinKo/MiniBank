@@ -29,11 +29,11 @@ void initialData() {
     if (!file.is_open()) {
         exit(1);
     }
-
-//    file << "admin" << ' ' << "admin" << ' ' << "ADMIN" << ' ' << "-" << ' ' << "-" << ' ' << "-" << ' ' << "-" << ' '
-//         << "-" << '\n';
+    if (!kBank.isExist("admin")) {
+        file << "admin" << ' ' << "admin" << ' ' << "ADMIN" << ' ' << "-" << ' ' << "-" << ' ' << "-" << ' '
+             << "-" << '\n';
+    }
     file.close();
-
 }
 
 void mainMenu() {
@@ -55,6 +55,7 @@ void mainMenu() {
             case 2: {
                 User *user = kBank.login();
                 kBank.setCurrentUserName(user->userName);
+                kBank.setCurrentUserBalance(user->amount);
                 kBank.isAdminUser(user->userName) ? adminMenu() : userMenu();
             }
                 break;
@@ -93,6 +94,8 @@ void userMenu() {
         cout << "===========================================" << endl;
         cout << "                  USER MENU                " << endl;
         cout << "===========================================" << endl << endl;
+        cout << "Name : " << kBank.getCurrentUserName() << ", " << "Balance : "
+             << to_string(kBank.getCurrentUserBalance()) << "Kyats" << endl << endl;
         cout << "1. Deposit" << endl;
         cout << "2. Cash WithDraw" << endl;
         cout << "3. Transfer" << endl;
@@ -114,7 +117,17 @@ void userMenu() {
                 cout << "===========================================" << endl;
                 cout << "               CASH WITHDRAW               " << endl;
                 cout << "===========================================" << endl << endl;
-                kBank.withDraw();
+                int status = kBank.withDraw();
+                if (status == 0) {
+                    cout << "Your money is nor avali" << endl << endl;
+                }
+            }
+                break;
+            case 3: {
+                cout << "===========================================" << endl;
+                cout << "                 TRANSFER                  " << endl;
+                cout << "===========================================" << endl << endl;
+                kBank.transfer();
             }
                 break;
             case 4: {

@@ -4,8 +4,6 @@
 
 #include "iostream"
 
-#define MAX_HISTORY 1000
-
 struct History {
     std::string transferFrom;
     std::string transferTo;

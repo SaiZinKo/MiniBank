@@ -15,11 +15,15 @@ namespace Bank {
 
         User *login();
 
-        User findByUserName(std::string userName);
+        User findByUserName(const std::string &userName);
 
         void setCurrentUserName(string userName);
 
         string getCurrentUserName();
+
+        void setCurrentUserBalance(int amount);
+
+        int getCurrentUserBalance();
 
         void showAllUser();
 
@@ -27,16 +31,21 @@ namespace Bank {
 
         void deposit();
 
-        void withDraw();
+        int withDraw();
+
+        void transfer();
 
         void history();
 
-    private:
-        std::string currentUserName;
-
         bool isExist(std::string userName);
 
+    private:
+        std::string currentUserName;
+        int balance;
+
         void update(User user);
+
+        void showHistory(History history);
 
         void showData(User *user);
     };
