@@ -30,7 +30,8 @@ void initialData() {
         exit(1);
     }
     if (!kBank.isExist("admin")) {
-        file << "admin" << ' ' << "admin" << ' ' << "ADMIN" << ' ' << "09" << ' ' << "admin@gmail.com" << ' ' << 0 << ' '
+        file << "admin" << ' ' << "admin" << ' ' << "ADMIN" << ' ' << "09" << ' ' << "admin@gmail.com" << ' ' << 0
+             << ' '
              << "-" << '\n';
     }
     file.close();
@@ -72,20 +73,27 @@ void adminMenu() {
         cout << "===========================================" << endl;
         cout << "                 ADMIN MENU                " << endl;
         cout << "===========================================" << endl << endl;
-        cout << "1. Show All User" << endl;
-        cout << "2. Cash WithDraw" << endl;
-        cout << "3. Transfer" << endl;
-        cout << "4. History" << endl;
-        cout << "5. Log Out" << endl;
+        cout << "1. View All Users" << endl;
+        cout << "2. View All Transactions" << endl;
+        cout << "3. Log Out" << endl;
         cout << ">: ";
         cin >> option;
 
         switch (option) {
             case 1:
-                kBank.showAllUser();
+                cout << "===========================================" << endl;
+                cout << "               VIEW ALL USERS              " << endl;
+                cout << "===========================================" << endl << endl;
+                kBank.viewAllUsersInfo();
+                break;
+            case 2:
+                cout << "===========================================" << endl;
+                cout << "        VIEW ALL USERS TRANSACTIONS        " << endl;
+                cout << "===========================================" << endl << endl;
+                kBank.viewAllUsersTransactions();
                 break;
         }
-    } while (option != 5);
+    } while (option != 3);
 }
 
 void userMenu() {

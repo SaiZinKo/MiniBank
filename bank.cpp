@@ -24,7 +24,6 @@ string historyToString(History history) {
            history.transactionType + ',' + to_string(history.amount) + ',' + history.notes + '|';
 }
 
-
 string timeStampToDateTime(const char *timeStamp) {
     time_t t = atoi(timeStamp);
     return asctime(localtime(&t));
@@ -315,7 +314,7 @@ User KBank::findByUserName(const std::string &userName) {
     return user;
 }
 
-void KBank::showAllUser() {
+void KBank::viewAllUsersInfo() {
     User user;
     User *userPtr;
     fstream file;
@@ -343,13 +342,53 @@ void KBank::showAllUser() {
     file.close();
 }
 
-void KBank::showData(User *user) {
-    cout << "User Name : " << user->userName << endl;
-    cout << "Password : " << user->password << endl;
-    cout << "Role : " << user->role << endl;
-    cout << "Phone Number : " << user->phoneNumber << endl;
-    cout << "Email : " << user->email << endl;
-    cout << "Amount : " << user->amount << endl << endl;
+void KBank::viewAllUsersTransactions() {
+    User user;
+    User *userPtr;
+    fstream file;
+    History history;
+    file.open("user.txt", ios::in);
+
+    if (!file.is_open()) {
+        cout << "File opening error" << endl;
+    }
+    while (!file.eof()) {
+        file >> user.userName >> user.password >> user.role >> user.phoneNumber >> user.email >> user.amount
+             >> user.history;
+
+        userPtr = user.userName == "" ? nullptr : &user;
+        if (userPtr != nullptr) {
+            if (!userPtr->userName.empty()) {
+                if (userPtr->role != "ADMIN") {
+                    int index = 0;
+                    string value;
+                    for (auto &ch: userPtr->history) {
+                        if (ch == '|') {
+                            history.notes = value;
+                            showHistory(history);
+                            value = "";
+                            index = 0;
+                        } else if (ch == ',') {
+                            index++;
+                            if (index == 1) history.transferFrom = value;
+                            if (index == 2) history.transferTo = value;
+                            if (index == 3) history.transactionTime = value;
+                            if (index == 4) history.transactionType = value;
+                            if (index == 5) history.amount = stoi(value);;
+                            value = "";
+                        } else {
+                            string st(1, ch);
+                            value += st;
+                        }
+                    }
+                }
+                user.userName = "";
+            } else {
+                cout << "There is no user data." << endl << endl;
+            }
+        }
+    }
+    file.close();
 }
 
 void KBank::update(User user) {
@@ -392,6 +431,15 @@ void KBank::update(User user) {
     remove("user.txt");
     rename("tmp_user.txt", "user.txt");
     cout << "User info updated successfully." << endl << endl;
+}
+
+void KBank::showData(User *user) {
+    cout << "User Name : " << user->userName << endl;
+    cout << "Password : " << user->password << endl;
+    cout << "Role : " << user->role << endl;
+    cout << "Phone Number : " << user->phoneNumber << endl;
+    cout << "Email : " << user->email << endl;
+    cout << "Amount : " << user->amount << endl << endl;
 }
 
 void KBank::showHistory(History history) {

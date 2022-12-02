@@ -25,7 +25,9 @@ namespace Bank {
 
         int getCurrentUserBalance();
 
-        void showAllUser();
+        void viewAllUsersInfo();
+
+        void viewAllUsersTransactions();
 
         bool isAdminUser(std::string userName);
 
