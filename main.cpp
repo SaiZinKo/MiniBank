@@ -30,7 +30,7 @@ void initialData() {
         exit(1);
     }
     if (!kBank.isExist("admin")) {
-        file << "admin" << ' ' << "admin" << ' ' << "ADMIN" << ' ' << "-" << ' ' << "-" << ' ' << "-" << ' '
+        file << "admin" << ' ' << "admin" << ' ' << "ADMIN" << ' ' << "09" << ' ' << "admin@gmail.com" << ' ' << 0 << ' '
              << "-" << '\n';
     }
     file.close();
@@ -96,24 +96,32 @@ void userMenu() {
         cout << "===========================================" << endl << endl;
         cout << "Name : " << kBank.getCurrentUserName() << ", " << "Balance : "
              << to_string(kBank.getCurrentUserBalance()) << "Kyats" << endl << endl;
-        cout << "1. Deposit" << endl;
-        cout << "2. Cash WithDraw" << endl;
-        cout << "3. Transfer" << endl;
-        cout << "4. History" << endl;
-        cout << "5. Edit Account Info" << endl;
-        cout << "6. Log Out" << endl;
+        cout << "1. View Profile" << endl;
+        cout << "2. Deposit" << endl;
+        cout << "3. Cash WithDraw" << endl;
+        cout << "4. Transfer" << endl;
+        cout << "5. History" << endl;
+        cout << "6. Change Password" << endl;
+        cout << "7. Log Out" << endl;
         cout << ">: ";
         cin >> option;
 
         switch (option) {
             case 1: {
                 cout << "===========================================" << endl;
+                cout << "                VIEW PROFILE               " << endl;
+                cout << "===========================================" << endl << endl;
+                kBank.viewProfile();
+            }
+                break;
+            case 2: {
+                cout << "===========================================" << endl;
                 cout << "                   DEPOSIT                 " << endl;
                 cout << "===========================================" << endl << endl;
                 kBank.deposit();
             }
                 break;
-            case 2: {
+            case 3: {
                 cout << "===========================================" << endl;
                 cout << "               CASH WITHDRAW               " << endl;
                 cout << "===========================================" << endl << endl;
@@ -123,20 +131,27 @@ void userMenu() {
                 }
             }
                 break;
-            case 3: {
+            case 4: {
                 cout << "===========================================" << endl;
                 cout << "                 TRANSFER                  " << endl;
                 cout << "===========================================" << endl << endl;
                 kBank.transfer();
             }
                 break;
-            case 4: {
+            case 5: {
                 cout << "===========================================" << endl;
                 cout << "                  HISTORY                  " << endl;
                 cout << "===========================================" << endl << endl;
                 kBank.history();
             }
                 break;
+            case 6: {
+                cout << "===========================================" << endl;
+                cout << "              CHANGE PASSWORD              " << endl;
+                cout << "===========================================" << endl << endl;
+                kBank.changePassword();
+            }
+                break;
         }
-    } while (option != 6);
+    } while (option != 7);
 }

@@ -3,17 +3,49 @@
 //
 
 #include <fstream>
-#include <utility>
 #include "bank.h"
 #include "ctime"
 
 using namespace Bank;
 
-History depositAndWithDrawHistory(int amount, string transactionTime, string transactionType);
+History depositAndWithDrawHistory(int amount, string transactionTime, string transactionType) {
+    History history;
+    history.transferFrom = "-";
+    history.transferTo = "-";
+    history.transactionTime = transactionTime;
+    history.transactionType = transactionType;
+    history.amount = amount;
+    history.notes = "-";
+    return history;
+}
 
-string historyToString(History history);
+string historyToString(History history) {
+    return history.transferFrom + ',' + history.transferTo + ',' + history.transactionTime + ',' +
+           history.transactionType + ',' + to_string(history.amount) + ',' + history.notes + '|';
+}
 
-string getCurrentTimeStamp();
+
+string timeStampToDateTime(const char *timeStamp) {
+    time_t t = atoi(timeStamp);
+    return asctime(localtime(&t));
+}
+
+string getCurrentTimeStamp() {
+    return to_string(time(NULL));
+}
+
+History
+transferHistory(string transferFrom, string transferTo, string transactionTime, string transactionType, int amount,
+                string notes) {
+    History history;
+    history.transferFrom = transferFrom;
+    history.transferTo = transferTo;
+    history.transactionTime = transactionTime;
+    history.transactionType = transactionType;
+    history.amount = amount;
+    history.notes = notes;
+    return history;
+}
 
 void KBank::registration() {
     User user;
@@ -42,11 +74,13 @@ void KBank::registration() {
     cout << endl;
     string transactionHistory = historyToString(
             depositAndWithDrawHistory(user.amount, getCurrentTimeStamp(), "DEPOSIT"));
-    file << user.userName << ' ' << user.password << ' ' << "USER" << ' ' << user.phoneNumber << ' '
-         << user.email
-         << ' ' << user.amount << ' ' << transactionHistory << ' ' << '\n';
+    if (!isExist(user.userName)) {
+        file << user.userName << ' ' << user.password << ' ' << "USER" << ' ' << user.phoneNumber << ' '
+             << user.email << ' ' << user.amount << ' ' << transactionHistory << ' ' << '\n';
+    } else {
+        cout << "User name " << user.userName << " is already exists." << endl << endl;
+    }
     file.close();
-    cout << "Account Registration Success" << endl << endl;
 }
 
 User *KBank::login() {
@@ -91,6 +125,150 @@ User *KBank::login() {
     } while (!isValidUser);
     file.close();
     return userPtr;
+}
+
+void KBank::viewProfile() {
+    User user = findByUserName(currentUserName);
+    showData(&user);
+}
+
+void KBank::deposit() {
+    User user = findByUserName(currentUserName);
+    int amount = 0;
+    cout << "Enter amount : ";
+    cin >> amount;
+    cout << endl;
+    user.amount += amount;
+    if (user.history == "-") {
+        user.history = historyToString(depositAndWithDrawHistory(amount, getCurrentTimeStamp(), "DEPOSIT"));
+    } else {
+        user.history += historyToString(depositAndWithDrawHistory(amount, getCurrentTimeStamp(), "DEPOSIT"));
+    }
+    update(user);
+    setCurrentUserBalance(user.amount);
+}
+
+int KBank::withDraw() {
+    User user = findByUserName(currentUserName);
+    int amount = 0;
+    cout << "Enter amount : ";
+    cin >> amount;
+    cout << endl;
+    if (user.amount > amount) {
+        user.amount -= amount;
+        if (user.history == "-") {
+            user.history = historyToString(depositAndWithDrawHistory(amount, getCurrentTimeStamp(), "WITHDRAW"));
+        } else {
+            user.history += historyToString(depositAndWithDrawHistory(amount, getCurrentTimeStamp(), "WITHDRAW"));
+        }
+        update(user);
+        setCurrentUserBalance(user.amount);
+        return 1;
+    }
+    return 0;
+}
+
+void KBank::transfer() {
+    string transferTo;
+    string notes;
+    int amount;
+    User currentUser = findByUserName(currentUserName);
+    cout << "Enter transfer to user name : ";
+    cin >> transferTo;
+    if (isExist(transferTo)) {
+        User transferToUser = findByUserName(transferTo);
+        cout << "Enter amount to transfer : ";
+        cin >> amount;
+        if (currentUser.amount > amount) {
+            transferToUser.amount += amount;
+            currentUser.amount -= amount;
+            cout << "Enter notes : ";
+            cin >> notes;
+            if (currentUser.history == "-") {
+                currentUser.history = historyToString(
+                        transferHistory(currentUserName, transferTo, getCurrentTimeStamp(), "TRANSFER", amount, notes));
+            } else {
+                currentUser.history += historyToString(
+                        transferHistory(currentUserName, transferTo, getCurrentTimeStamp(), "TRANSFER", amount, notes));
+            }
+
+            if (transferToUser.history == "-") {
+                transferToUser.history = historyToString(
+                        transferHistory(currentUserName, transferTo, getCurrentTimeStamp(), "TRANSFER", amount, notes));
+            } else {
+                transferToUser.history += historyToString(
+                        transferHistory(currentUserName, transferTo, getCurrentTimeStamp(), "TRANSFER", amount, notes));
+            }
+            update(transferToUser);
+            update(currentUser);
+            setCurrentUserBalance(currentUser.amount);
+        } else {
+            cout << "Invalid" << endl << endl;
+        }
+    } else {
+        cout << transferTo << " is not exist" << endl << endl;
+    }
+
+
+    cout << "Transferred money successfully" << endl << endl;
+}
+
+void KBank::history() {
+    History history;
+    User user = findByUserName(currentUserName);
+    int index = 0;
+    string value;
+    for (auto &ch: user.history) {
+        if (ch == '|') {
+            history.notes = value;
+            showHistory(history);
+            value = "";
+            index = 0;
+        } else if (ch == ',') {
+            index++;
+            if (index == 1) history.transferFrom = value;
+            if (index == 2) history.transferTo = value;
+            if (index == 3) history.transactionTime = value;
+            if (index == 4) history.transactionType = value;
+            if (index == 5) history.amount = stoi(value);;
+            value = "";
+        } else {
+            string st(1, ch);
+            value += st;
+        }
+    }
+}
+
+void KBank::changePassword() {
+    User user = findByUserName(currentUserName);
+    string oldPassword;
+    string newPassword;
+    string confirmPassword;
+    cout << "Old Password : ";
+    cin >> oldPassword;
+    cout << "New Password : ";
+    cin >> newPassword;
+    cout << "Confirm Password : ";
+    cin >> confirmPassword;
+    cout << endl;
+
+    if (oldPassword == user.password) {
+        if (newPassword == confirmPassword) {
+            user.password = newPassword;
+            update(user);
+        } else {
+            cout << "New password and confirm password must be same" << endl << endl;
+        }
+    } else {
+        cout << "Old password is incorrect" << endl << endl;
+    }
+
+    cout << "Password changed successfully. Your new password is " << newPassword << endl << endl;
+}
+
+bool KBank::isAdminUser(std::string userName) {
+    User user = findByUserName(userName);
+    return user.role == "ADMIN";
 }
 
 bool KBank::isExist(std::string userName) {
@@ -150,10 +328,12 @@ void KBank::showAllUser() {
         file >> user.userName >> user.password >> user.role >> user.phoneNumber >> user.email >> user.amount
              >> user.history;
 
-        userPtr = user.userName.empty() ? nullptr : &user;
+        userPtr = user.userName == "" ? nullptr : &user;
         if (userPtr != nullptr) {
             if (!userPtr->userName.empty()) {
-                showData(userPtr);
+                if (userPtr->role != "ADMIN") {
+                    showData(userPtr);
+                }
                 user.userName = "";
             } else {
                 cout << "There is no user data." << endl << endl;
@@ -163,11 +343,6 @@ void KBank::showAllUser() {
     file.close();
 }
 
-bool KBank::isAdminUser(std::string userName) {
-    User user = findByUserName(userName);
-    return user.role == "ADMIN";
-}
-
 void KBank::showData(User *user) {
     cout << "User Name : " << user->userName << endl;
     cout << "Password : " << user->password << endl;
@@ -175,123 +350,6 @@ void KBank::showData(User *user) {
     cout << "Phone Number : " << user->phoneNumber << endl;
     cout << "Email : " << user->email << endl;
     cout << "Amount : " << user->amount << endl << endl;
-}
-
-History depositAndWithDrawHistory(int amount, string transactionTime, string transactionType) {
-    History history;
-    history.transferFrom = "-";
-    history.transferTo = "-";
-    history.transactionTime = transactionTime;
-    history.transactionType = transactionType;
-    history.amount = amount;
-    history.notes = "-";
-    return history;
-}
-
-string historyToString(History history) {
-    return history.transferFrom + ',' + history.transferTo + ',' + history.transactionTime + ',' +
-           history.transactionType + ',' + to_string(history.amount) + ',' + history.notes + '|';
-}
-
-void KBank::deposit() {
-    User user = findByUserName(currentUserName);
-    int amount = 0;
-    cout << "Enter amount : ";
-    cin >> amount;
-    cout << endl;
-    user.amount += amount;
-    if (user.history == "-") {
-        user.history = historyToString(depositAndWithDrawHistory(amount, getCurrentTimeStamp(), "DEPOSIT"));
-    } else {
-        user.history += historyToString(depositAndWithDrawHistory(amount, getCurrentTimeStamp(), "DEPOSIT"));
-    }
-    update(user);
-    setCurrentUserBalance(user.amount);
-}
-
-string timeStampToDateTime(const char *timeStamp) {
-    time_t t = atoi(timeStamp);
-    return asctime(localtime(&t));
-}
-
-string getCurrentTimeStamp() {
-    return to_string(time(NULL));
-}
-
-int KBank::withDraw() {
-    User user = findByUserName(currentUserName);
-    int amount = 0;
-    cout << "Enter amount : ";
-    cin >> amount;
-    cout << endl;
-    if (user.amount > amount) {
-        user.amount -= amount;
-        if (user.history == "-") {
-            user.history = historyToString(depositAndWithDrawHistory(amount, getCurrentTimeStamp(), "WITHDRAW"));
-        } else {
-            user.history += historyToString(depositAndWithDrawHistory(amount, getCurrentTimeStamp(), "WITHDRAW"));
-        }
-        update(user);
-        setCurrentUserBalance(user.amount);
-        return 1;
-    }
-    return 0;
-}
-
-History
-transferHistory(string transferFrom, string transferTo, string transactionTime, string transactionType, int amount,
-                string notes) {
-    History history;
-    history.transferFrom = transferFrom;
-    history.transferTo = transferTo;
-    history.transactionTime = transactionTime;
-    history.transactionType = transactionType;
-    history.amount = amount;
-    history.notes = notes;
-    return history;
-}
-
-void KBank::transfer() {
-    string transferTo;
-    string notes;
-    int amount;
-    User currentUser = findByUserName(currentUserName);
-    cout << "Enter transfer to user name : ";
-    cin >> transferTo;
-    if (isExist(transferTo)) {
-        User transferToUser = findByUserName(transferTo);
-        cout << "Enter amount to transfer : ";
-        cin >> amount;
-        if (currentUser.amount > amount) {
-            transferToUser.amount += amount;
-            currentUser.amount -= amount;
-            cout << "Enter notes : ";
-            cin >> notes;
-            if (currentUser.history == "-") {
-                currentUser.history = historyToString(
-                        transferHistory(currentUserName, transferTo, getCurrentTimeStamp(), "TRANSFER", amount, notes));
-            } else {
-                currentUser.history += historyToString(
-                        transferHistory(currentUserName, transferTo, getCurrentTimeStamp(), "TRANSFER", amount, notes));
-            }
-
-            if (transferToUser.history == "-") {
-                transferToUser.history = historyToString(
-                        transferHistory(currentUserName, transferTo, getCurrentTimeStamp(), "TRANSFER", amount, notes));
-            } else {
-                transferToUser.history += historyToString(
-                        transferHistory(currentUserName, transferTo, getCurrentTimeStamp(), "TRANSFER", amount, notes));
-            }
-            update(transferToUser);
-            update(currentUser);
-            setCurrentUserBalance(currentUser.amount);
-        } else {
-            cout << "Invalid" << endl << endl;
-        }
-    } else {
-        cout << transferTo << " is not exist" << endl << endl;
-    }
-
 }
 
 void KBank::update(User user) {
@@ -333,6 +391,7 @@ void KBank::update(User user) {
     tempFile.close();
     remove("user.txt");
     rename("tmp_user.txt", "user.txt");
+    cout << "User info updated successfully." << endl << endl;
 }
 
 void KBank::showHistory(History history) {
@@ -351,31 +410,5 @@ void KBank::showHistory(History history) {
         cout << "Transaction Time : " << timeStampToDateTime(history.transactionTime.c_str());
         cout << "Amount : " << sign << history.amount << "Kyats" << endl;
         cout << "Notes : " << history.notes << endl << endl;
-    }
-}
-
-void KBank::history() {
-    History history;
-    User user = findByUserName(currentUserName);
-    int index = 0;
-    string value;
-    for (auto &ch: user.history) {
-        if (ch == '|') {
-            history.notes = value;
-            showHistory(history);
-            value = "";
-            index = 0;
-        } else if (ch == ',') {
-            index++;
-            if (index == 1) history.transferFrom = value;
-            if (index == 2) history.transferTo = value;
-            if (index == 3) history.transactionTime = value;
-            if (index == 4) history.transactionType = value;
-            if (index == 5) history.amount = stoi(value);;
-            value = "";
-        } else {
-            string st(1, ch);
-            value += st;
-        }
     }
 }

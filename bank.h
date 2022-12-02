@@ -37,6 +37,10 @@ namespace Bank {
 
         void history();
 
+        void changePassword();
+
+        void viewProfile();
+
         bool isExist(std::string userName);
 
     private:
