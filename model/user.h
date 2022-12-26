@@ -2,6 +2,9 @@
 // Created by Zin Ko Winn on 1/12/2022.
 //
 
+#ifndef MINIBANK_USER_H
+#define MINIBANK_USER_H
+
 #include "iostream"
 
 struct History {
@@ -15,6 +18,7 @@ struct History {
 
 
 struct User {
+    int id;
     std::string userName;
     std::string password;
     std::string role;
@@ -24,3 +28,4 @@ struct User {
     std::string history;
 };
 
+#endif //MINIBANK_USER_H

@@ -3,10 +3,12 @@
 //
 
 #include <fstream>
-#include "bank.h"
 #include "ctime"
+#include "bank.h"
+#include "common-utils.h"
 
 using namespace Bank;
+using namespace BankData;
 
 History depositAndWithDrawHistory(int amount, string transactionTime, string transactionType) {
     History history;
@@ -46,9 +48,7 @@ transferHistory(string transferFrom, string transferTo, string transactionTime, 
     return history;
 }
 
-void KBank::registration() {
-    User user;
-
+void saveFile(User user) {
     fstream file;
     file.open("user.txt", ios::app);
 
@@ -56,6 +56,14 @@ void KBank::registration() {
         cout << "File opening error" << endl;
         exit(1);
     }
+
+    file << user.userName << ' ' << user.password << ' ' << "USER" << ' ' << user.phoneNumber << ' '
+         << user.email << ' ' << user.amount << ' ' << user.history << ' ' << '\n';
+    file.close();
+}
+
+void KBank::registration() {
+    User user;
 
     cout << "===========================================" << endl;
     cout << "             Account Registration          " << endl;
@@ -73,29 +81,23 @@ void KBank::registration() {
     cout << endl;
     string transactionHistory = historyToString(
             depositAndWithDrawHistory(user.amount, getCurrentTimeStamp(), "DEPOSIT"));
-    if (!isExist(user.userName)) {
-        file << user.userName << ' ' << user.password << ' ' << "USER" << ' ' << user.phoneNumber << ' '
-             << user.email << ' ' << user.amount << ' ' << transactionHistory << ' ' << '\n';
-    } else {
+    user.history = transactionHistory;
+    user.id = generateId();
+
+    if (KBankData::isExists(root, user)) {
         cout << "User name " << user.userName << " is already exists." << endl << endl;
+        return;
     }
-    file.close();
+    KBankData::insert(root, user);
+    saveFile(user);
 }
 
 User *KBank::login() {
-    User user;
     User *userPtr = nullptr;
     string userName;
     string password;
     bool isValidUser = true;
 
-    fstream file;
-    file.open("user.txt", ios::in);
-
-    if (!file.is_open()) {
-        cout << "File opening error" << endl;
-        exit(1);
-    }
     do {
         if (!isValidUser) {
             cout << endl << "Please try again! Invalid User Name or Password" << endl << endl;
@@ -108,31 +110,28 @@ User *KBank::login() {
         cout << "Enter Password : ";
         cin >> password;
 
-        while (!file.eof()) {
-            file >> user.userName >> user.password >> user.role >> user.phoneNumber >> user.email >> user.amount
-                 >> user.history;
+        list<User> userList = KBankData::findAll(root);
 
+        for (User user: userList) {
             isValidUser = user.userName == userName && user.password == password;
 
             if (isValidUser) {
                 cout << "Login Success" << endl << endl;
                 userPtr = &user;
-                file.close();
                 return userPtr;
             }
         }
     } while (!isValidUser);
-    file.close();
     return userPtr;
 }
 
 void KBank::viewProfile() {
-    User user = findByUserName(currentUserName);
-    showData(&user);
+    User *user = KBankData::findById(root, userId);
+    showData(user);
 }
 
 void KBank::deposit() {
-    User user = findByUserName(currentUserName);
+    User user = *KBankData::findById(root, userId);
     int amount = 0;
     cout << "Enter amount : ";
     cin >> amount;
@@ -143,12 +142,12 @@ void KBank::deposit() {
     } else {
         user.history += historyToString(depositAndWithDrawHistory(amount, getCurrentTimeStamp(), "DEPOSIT"));
     }
-    update(user);
+    KBankData::update(root, user);
     setCurrentUserBalance(user.amount);
 }
 
 int KBank::withDraw() {
-    User user = findByUserName(currentUserName);
+    User user = *KBankData::findById(root, userId);
     int amount = 0;
     cout << "Enter amount : ";
     cin >> amount;
@@ -158,9 +157,10 @@ int KBank::withDraw() {
         if (user.history == "-") {
             user.history = historyToString(depositAndWithDrawHistory(amount, getCurrentTimeStamp(), "WITHDRAW"));
         } else {
-            user.history += historyToString(depositAndWithDrawHistory(amount, getCurrentTimeStamp(), "WITHDRAW"));
+            user.history += historyToString(
+                    depositAndWithDrawHistory(amount, getCurrentTimeStamp(), "WITHDRAW"));
         }
-        update(user);
+        KBankData::update(root, user);
         setCurrentUserBalance(user.amount);
         return 1;
     }
@@ -198,8 +198,8 @@ void KBank::transfer() {
                 transferToUser.history += historyToString(
                         transferHistory(currentUserName, transferTo, getCurrentTimeStamp(), "TRANSFER", amount, notes));
             }
-            update(transferToUser);
-            update(currentUser);
+            KBankData::update(root, transferToUser);
+            KBankData::update(root, currentUser);
             setCurrentUserBalance(currentUser.amount);
         } else {
             cout << "Invalid" << endl << endl;
@@ -213,12 +213,12 @@ void KBank::transfer() {
 }
 
 void KBank::history() {
-    User user = findByUserName(currentUserName);
+    User user = *KBankData::findById(root, userId);
     showHistory(user);
 }
 
 void KBank::changePassword() {
-    User user = findByUserName(currentUserName);
+    User user = *KBankData::findById(root, userId);
     string oldPassword;
     string newPassword;
     string confirmPassword;
@@ -233,20 +233,20 @@ void KBank::changePassword() {
     if (oldPassword == user.password) {
         if (newPassword == confirmPassword) {
             user.password = newPassword;
-            update(user);
+            KBankData::update(root, user);
         } else {
             cout << "New password and confirm password must be same" << endl << endl;
         }
     } else {
         cout << "Old password is incorrect" << endl << endl;
+        return;
     }
 
     cout << "Password changed successfully. Your new password is " << newPassword << endl << endl;
 }
 
-bool KBank::isAdminUser(std::string userName) {
-    User user = findByUserName(userName);
-    return user.role == "ADMIN";
+bool KBank::isAdminUser(User *user) {
+    return user->role == "ADMIN";
 }
 
 bool KBank::isExist(std::string userName) {
@@ -270,6 +270,14 @@ int KBank::getCurrentUserBalance() {
     return balance;
 }
 
+void KBank::setCurrentUserId(int id) {
+    userId = id;
+}
+
+int KBank::getCurrentUserId() {
+    return userId;
+}
+
 User KBank::findByUserName(const std::string &userName) {
     User user;
     fstream file;
@@ -281,7 +289,7 @@ User KBank::findByUserName(const std::string &userName) {
     }
 
     while (!file.eof()) {
-        file >> user.userName >> user.password >> user.role >> user.phoneNumber >> user.email >> user.amount
+        file >> user.id >> user.userName >> user.password >> user.role >> user.phoneNumber >> user.email >> user.amount
              >> user.history;
         if (user.userName == userName) {
             file.close();
@@ -303,7 +311,7 @@ void KBank::viewAllUsersInfo() {
         cout << "File opening error" << endl;
     }
     while (!file.eof()) {
-        file >> user.userName >> user.password >> user.role >> user.phoneNumber >> user.email >> user.amount
+        file >> user.id >> user.userName >> user.password >> user.role >> user.phoneNumber >> user.email >> user.amount
              >> user.history;
 
         userPtr = user.userName == "" ? nullptr : &user;
@@ -332,7 +340,7 @@ void KBank::viewAllUsersTransactions() {
         cout << "File opening error" << endl;
     }
     while (!file.eof()) {
-        file >> user.userName >> user.password >> user.role >> user.phoneNumber >> user.email >> user.amount
+        file >> user.id >> user.userName >> user.password >> user.role >> user.phoneNumber >> user.email >> user.amount
              >> user.history;
 
         userPtr = user.userName == "" ? nullptr : &user;
@@ -350,47 +358,39 @@ void KBank::viewAllUsersTransactions() {
     file.close();
 }
 
-void KBank::update(User user) {
-    fstream file;
-    fstream tempFile;
-    User tmpUser;
-    User *tmpUserPtr;
-
-    file.open("user.txt", ios::in);
-    tempFile.open("tmp_user.txt", ios::app);
-
-    if (!file.is_open() || !tempFile.is_open()) {
-        cout << "File opening error" << endl;
-        exit(1);
-    }
-
-    while (!file.eof()) {
-        file >> tmpUser.userName >> tmpUser.password >> tmpUser.role >> tmpUser.phoneNumber >> tmpUser.email
-             >> tmpUser.amount >> tmpUser.history;
-
-        tmpUserPtr = tmpUser.userName.empty() ? nullptr : &tmpUser;
-        if (tmpUserPtr != nullptr) {
-            if (tmpUser.userName == user.userName) {
-                tempFile << user.userName << ' ' << user.password << ' ' << user.role << ' ' << user.phoneNumber
-                         << ' '
-                         << user.email << ' ' << user.amount << ' ' << user.history << ' ' << '\n';
-            } else {
-                tempFile << tmpUser.userName << ' ' << tmpUser.password << ' ' << tmpUser.role << ' '
-                         << tmpUser.phoneNumber
-                         << ' ' << tmpUser.email << ' ' << tmpUser.amount << ' ' << tmpUser.history
-                         << ' '
-                         << '\n';
-            }
-            tmpUser.userName = "";
-        }
-    }
-
-    file.close();
-    tempFile.close();
-    remove("user.txt");
-    rename("tmp_user.txt", "user.txt");
-    cout << "User info updated successfully." << endl << endl;
-}
+//void KBank::update(User user) {
+//    fstream tempFile;
+//
+//    tempFile.open("tmp_user.txt", ios::app);
+//
+//    if (!tempFile.is_open()) {
+//        cout << "File opening error" << endl;
+//        exit(1);
+//    }
+//
+//    list<User> userList = KBankData::findAll(root);
+//
+//    for (User tmpUser: userList) {
+//        if (tmpUser.userName == user.userName) {
+//            tempFile << user.id << ' ' << user.userName << ' ' << user.password << ' ' << user.role << ' '
+//                     << user.phoneNumber
+//                     << ' '
+//                     << user.email << ' ' << user.amount << ' ' << user.history << ' ' << '\n';
+//        } else {
+//            tempFile << tmpUser.id << ' ' << tmpUser.userName << ' ' << tmpUser.password << ' ' << tmpUser.role
+//                     << ' '
+//                     << tmpUser.phoneNumber
+//                     << ' ' << tmpUser.email << ' ' << tmpUser.amount << ' ' << tmpUser.history
+//                     << ' '
+//                     << '\n';
+//        }
+//    }
+//
+//    tempFile.close();
+//    remove("user.txt");
+//    rename("tmp_user.txt", "user.txt");
+//    cout << "User info updated successfully." << endl << endl;
+//}
 
 void KBank::showData(User *user) {
     cout << "User Name : " << user->userName << endl;

@@ -3,4 +3,4 @@ project(MiniBank)
 
 set(CMAKE_CXX_STANDARD 14)
 
-add_executable(MiniBank main.cpp bank.cpp bank.h model/user.h)
+add_executable(MiniBank main.cpp bank.cpp bank.h model/user.h data-store.cpp data-store.h common-utils.cpp common-utils.h)

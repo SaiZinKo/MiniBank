@@ -4,6 +4,7 @@
 
 #include "iostream"
 #include "model/user.h"
+#include "data-store.h"
 
 using namespace std;
 
@@ -25,11 +26,15 @@ namespace Bank {
 
         int getCurrentUserBalance();
 
+        void setCurrentUserId(int id);
+
+        int getCurrentUserId();
+
         void viewAllUsersInfo();
 
         void viewAllUsersTransactions();
 
-        bool isAdminUser(std::string userName);
+        bool isAdminUser(User *user);
 
         void deposit();
 
@@ -45,17 +50,17 @@ namespace Bank {
 
         bool isExist(std::string userName);
 
+        static void showData(User *user);
+
+        Node *root = nullptr;
     private:
         std::string currentUserName;
+        int userId;
         int balance;
-
-        void update(User user);
 
         void showHistory(User user);
 
         void printHistory(History history, string userName);
-
-        void showData(User *user);
     };
 
 }

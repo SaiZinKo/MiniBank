@@ -4,11 +4,16 @@
 
 #include <fstream>
 #include "bank.h"
+#include "data-store.h"
+#include "common-utils.h"
 
 using namespace Bank;
+using namespace BankData;
 KBank kBank;
 
 void initialData();
+
+void loadFileDataToBinaryTree();
 
 void mainMenu();
 
@@ -17,7 +22,8 @@ void adminMenu();
 void userMenu();
 
 int main() {
-    initialData();
+//   initialData();
+    loadFileDataToBinaryTree();
     mainMenu();
     return 0;
 }
@@ -29,11 +35,45 @@ void initialData() {
     if (!file.is_open()) {
         exit(1);
     }
+
     if (!kBank.isExist("admin")) {
-        file << "admin" << ' ' << "admin" << ' ' << "ADMIN" << ' ' << "09" << ' ' << "admin@gmail.com" << ' ' << 0
-             << ' '
-             << "-" << '\n';
+        file << generateId() << ' ' << "admin" << ' ' << "admin" << ' ' << "ADMIN" << ' ' << "09" << ' '
+             << "admin@gmail.com"
+             << ' ' << 0 << ' ' << "-" << '\n';
     }
+    file.close();
+}
+
+void loadFileDataToBinaryTree() {
+    fstream file;
+    User user;
+    User *userPtr;
+    file.open("user.txt", ios::in);
+
+    while (!file.eof()) {
+        file >> user.id >> user.userName >> user.password >> user.role >> user.phoneNumber >> user.email >> user.amount
+             >> user.history;
+
+        userPtr = user.userName.empty() ? nullptr : &user;
+        if (userPtr != nullptr) {
+            if (!userPtr->userName.empty()) {
+                KBankData::insert(kBank.root, user);
+                user.userName = "";
+            } else {
+                cout << "There is no user data." << endl << endl;
+            }
+        }
+    }
+//    KBankData::printTreeInOrder(kBank.root);
+    list<User> userList = KBankData::findAll(kBank.root);
+    cout << userList.size() << endl;
+    for(User user : userList){
+        cout << user.userName << endl;
+    }
+//    User *user1 = KBankData::findById(kBank.root, 60319);
+//    if (user1 != nullptr) {
+//        cout << user1->email << endl;
+//    }
     file.close();
 }
 
@@ -57,10 +97,11 @@ void mainMenu() {
                 User *user = kBank.login();
                 kBank.setCurrentUserName(user->userName);
                 kBank.setCurrentUserBalance(user->amount);
-                kBank.isAdminUser(user->userName) ? adminMenu() : userMenu();
+                kBank.setCurrentUserId(user->id);
+                kBank.isAdminUser(user) ? adminMenu() : userMenu();
             }
                 break;
-            case 3:
+            default:
                 break;
         }
     } while (option != 3);
@@ -92,6 +133,8 @@ void adminMenu() {
                 cout << "        VIEW ALL USERS TRANSACTIONS        " << endl;
                 cout << "===========================================" << endl << endl;
                 kBank.viewAllUsersTransactions();
+                break;
+            default:
                 break;
         }
     } while (option != 3);
@@ -160,6 +203,8 @@ void userMenu() {
                 cout << "===========================================" << endl << endl;
                 kBank.changePassword();
             }
+                break;
+            default:
                 break;
         }
     } while (option != 7);
