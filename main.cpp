@@ -8,8 +8,9 @@
 #include "common-utils.h"
 
 using namespace Bank;
-using namespace BankData;
+using namespace DataBase;
 KBank kBank;
+ZDataBase<User> zDataBase;
 
 void initialData();
 
@@ -33,6 +34,7 @@ void initialData() {
     file.open("user.txt", ios::app);
 
     if (!file.is_open()) {
+        cout << "File opening error" << endl;
         exit(1);
     }
 
@@ -57,7 +59,7 @@ void loadFileDataToBinaryTree() {
         userPtr = user.userName.empty() ? nullptr : &user;
         if (userPtr != nullptr) {
             if (!userPtr->userName.empty()) {
-                KBankData::insert(kBank.root, user);
+                zDataBase.create(user);
                 user.userName = "";
             } else {
                 cout << "There is no user data." << endl << endl;
@@ -65,11 +67,11 @@ void loadFileDataToBinaryTree() {
         }
     }
 //    KBankData::printTreeInOrder(kBank.root);
-    list<User> userList = KBankData::findAll(kBank.root);
-    cout << userList.size() << endl;
-    for(User user : userList){
-        cout << user.userName << endl;
-    }
+//    list<User> userList = KBankData::findAll(kBank.root);
+//    cout << userList.size() << endl;
+//    for(User user : userList){
+//        cout << user.userName << endl;
+//    }
 //    User *user1 = KBankData::findById(kBank.root, 60319);
 //    if (user1 != nullptr) {
 //        cout << user1->email << endl;

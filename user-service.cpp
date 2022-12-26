@@ -1,58 +1,38 @@
 //
-// Created by Zin Ko Winn on 12/25/2022.
+// Created by zinko on 12/26/2022.
 //
 
+#include "user-service.h"
 #include <fstream>
 #include <utility>
-#include "data-store.h"
 #include "iostream"
-#include <iomanip>
+#include "bank.h"
 
-using namespace DataBase;
-using namespace std;
+using namespace BankData;
+using namespace Bank;
+list<User> userList;
 
-template<class T>
-ZDataBase<T>::ZDataBase(){
-    root = NULL;
+Node *KBankData::createNode(User data) {
+    Node *newNode = new Node;
+    newNode->data = std::move(data);
+    newNode->left = nullptr;
+    newNode->right = nullptr;
+    return newNode;
 }
 
-template<class T>
-void ZDataBase<T>::create(T data, Node<T> *rootNode) {
-
-    if (!rootNode) {
-        rootNode = (*this).root;
-    }
-
-    if (!(*this).root) {
+void KBankData::insert(Node *&root, const User &data) {
+    if (!root) {
         root = createNode(data);
         return;
     }
-
-    if (data.id < (*this).root->data.id) {
-        create((*this).root->left, data);
+    if (data.id < root->data.id) {
+        insert(root->left, data);
     } else {
-        create((*this).root->right, data);
+        insert(root->right, data);
     }
 }
 
-template<class T>
-void ZDataBase<T>::retrieveAllUser(Node<T> *root) {
-    if (root == nullptr) return;
-    retrieveAllUser(root->left);
-    (*this).dataList.insert((*this).dataList.end(), root->data);
-    retrieveAllUser(root->right);
-}
-
-template<class T>
-list<T> ZDataBase<T>::findAll(Node<T> *node) {
-    retrieveAllUser(node);
-    list<T> tempDataList = (*this).dataList;
-    (*this).dataList.clear();
-    return tempDataList;
-}
-
-template<class T>
-Node<T> *ZDataBase<T>::search(Node<T> *root, const T &data) {
+Node *KBankData::search(Node *root, const User &data) {
     if (!root) {
         return nullptr;
     } else if (root->data.userName == data.userName) {
@@ -64,8 +44,7 @@ Node<T> *ZDataBase<T>::search(Node<T> *root, const T &data) {
     }
 }
 
-template<class T>
-void ZDataBase<T>::updateToFile(Node<T> *root, const T &user) {
+void KBankData::updateToFile(Node *root, const User &user) {
     fstream tempFile;
 
     tempFile.open("tmp_user.txt", ios::app);
@@ -75,9 +54,9 @@ void ZDataBase<T>::updateToFile(Node<T> *root, const T &user) {
         exit(1);
     }
 
-    list<T> userList = ZDataBase::findAll(root);
+    list<User> userList = KBankData::findAll(root);
 
-    for (const T &tmpUser: userList) {
+    for (const User &tmpUser: userList) {
         if (tmpUser.userName == user.userName) {
             tempFile << user.id << ' ' << user.userName << ' ' << user.password << ' ' << user.role << ' '
                      << user.phoneNumber
@@ -99,17 +78,15 @@ void ZDataBase<T>::updateToFile(Node<T> *root, const T &user) {
     cout << "User info updated successfully." << endl << endl;
 }
 
-template<class T>
-void ZDataBase<T>::update(Node<T> *root, const T &newData) {
-    Node<T> *nodeToUpdate = search(root, newData);
+void KBankData::update(Node *root, const User &newData) {
+    Node *nodeToUpdate = search(root, newData);
     if (nodeToUpdate) {
         nodeToUpdate->data = newData;
         updateToFile(root, newData);
     }
 }
 
-template<class T>
-void ZDataBase<T>::deleteUser(Node<T> *&root, const T &data) {
+void KBankData::deleteUser(Node *&root, const User &data) {
     if (!root) {
         return;
     } else if (data.id < root->data.id) {
@@ -121,15 +98,15 @@ void ZDataBase<T>::deleteUser(Node<T> *&root, const T &data) {
             delete root;
             root = nullptr;
         } else if (!root->left) {
-            Node<T> *temp = root;
+            Node *temp = root;
             root = root->right;
             delete temp;
         } else if (!root->right) {
-            Node<T> *temp = root;
+            Node *temp = root;
             root = root->left;
             delete temp;
         } else {
-            Node<T> *temp = root->right;
+            Node *temp = root->right;
             while (temp->left) {
                 temp = temp->left;
             }
@@ -139,8 +116,7 @@ void ZDataBase<T>::deleteUser(Node<T> *&root, const T &data) {
     }
 }
 
-template<class T>
-void ZDataBase<T>::clear(Node<T> *node) {
+void KBankData::clear(Node *node) {
     if (node != nullptr) {
         clear(node->left);
         clear(node->right);
@@ -148,14 +124,26 @@ void ZDataBase<T>::clear(Node<T> *node) {
     }
 }
 
-template<class T>
-bool ZDataBase<T>::isExists(Node<T> *&root, T data) {
-    Node<T> *node = search(root, std::move(data));
+bool KBankData::isExists(Node *&root, User user) {
+    Node *node = search(root, std::move(user));
     return node != nullptr;
 }
 
-template<class T>
-T *ZDataBase<T>::findById(Node<T> *root, int id) {
+void KBankData::retrieveAllUser(Node *root) {
+    if (root == nullptr) return;
+    retrieveAllUser(root->left);
+    userList.insert(userList.end(), root->data);
+    retrieveAllUser(root->right);
+}
+
+list<User> KBankData::findAll(Node *node) {
+    retrieveAllUser(node);
+    list<User> tempUserList = userList;
+    userList.clear();
+    return tempUserList;
+}
+
+User *KBankData::findById(Node *root, int id) {
     if (!root) {
         return nullptr;
     } else if (root->data.id == id) {
@@ -167,12 +155,22 @@ T *ZDataBase<T>::findById(Node<T> *root, int id) {
     }
 }
 
-template<class T>
-void ZDataBase<T>::printTreeNode(Node<T> *rootNode, int indent) {
-    if (!rootNode) {
-        rootNode = (*this).root;
+User *KBankData::findByUserName(Node *root, std::string userName) {
+    if (!root) {
+        return nullptr;
+    } else if (root->data.userName == userName) {
+        return &root->data;
+    } else if (userName < root->data.userName) {
+        return findByUserName(root->left, userName);
+    } else {
+        return findByUserName(root->right, userName);
     }
-    printTreeInOrder(rootNode->left);
-    cout << setw(indent * 4) << rootNode->data << endl;
-    printTreeInOrder(rootNode->right);
+}
+
+void KBankData::printTreeInOrder(Node *node) {
+    if (node == nullptr) return;
+
+    printTreeInOrder(node->left);
+    KBank::showData(&node->data);
+    printTreeInOrder(node->right);
 }

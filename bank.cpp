@@ -58,7 +58,7 @@ void saveFile(const User &user) {
         exit(1);
     }
 
-    file << user.userName << ' ' << user.password << ' ' << "USER" << ' ' << user.phoneNumber << ' '
+    file << user.id << ' ' << user.userName << ' ' << user.password << ' ' << "USER" << ' ' << user.phoneNumber << ' '
          << user.email << ' ' << user.amount << ' ' << user.history << ' ' << '\n';
     file.close();
 }
@@ -84,6 +84,7 @@ void KBank::registration() {
             depositAndWithDrawHistory(user.amount, getCurrentTimeStamp(), "DEPOSIT"));
     user.history = transactionHistory;
     user.id = generateId();
+    user.role = "USER";
 
     if (KBankData::isExists(root, user)) {
         cout << "User name " << user.userName << " is already exists." << endl << endl;

@@ -5,47 +5,54 @@
 #ifndef MINIBANK_DATA_STORE_H
 #define MINIBANK_DATA_STORE_H
 
-#include <iostream>
 #include "list"
-#include "model/user.h"
 
-using namespace std;
+namespace DataBase {
+    template<class T>
+    struct Node {
+        T data;
+        Node *left, *right{};
+    };
 
-struct Node {
-    User data;
-    Node *left{};
-    Node *right{};
-};
+    template<class T>
+    class ZDataBase {
+    private:
+        Node<T> *root;
+        std::list<T> dataList;
 
-namespace BankData {
-    class KBankData {
+        Node<T> *createNode(T data) {
+            Node<T> *newNode = new Node<T>;
+            newNode->data = std::move(data);
+            newNode->left = nullptr;
+            newNode->right = nullptr;
+            return newNode;
+        }
+
+        void retrieveAllUser(Node<T> *rootNode);
+
+        void updateToFile(Node<T> *rootNode, const T &user);
 
     public:
-        static Node *createNode(User data);
+        ZDataBase();
 
-        static void insert(Node *&root, const User &data);
+        void create(T data, Node<T> *rootNode = nullptr);
 
-        static Node *search(Node *root, const User &data);
+        std::list<T> findAll(Node<T> *rootNode);
 
-        static void update(Node *root, const User &newData);
+        void update(Node<T> *rootNode, const T &newData);
 
-        static void deleteUser(Node *&root, const User &data);
+        Node<T> *search(Node<T> *rootNode, const T &data);
 
-        static void clear(Node *root);
+        void deleteUser(Node<T> *&rootNode, const T &data);
 
-        static bool isExists(Node *&root, User user);
+        void clear(Node<T> *rootNode);
 
-        static list <User> findAll(Node *node);
+        bool isExists(Node<T> *&rootNode, T user);
 
-        static User *findById(Node *root, int id);
+        T *findById(Node<T> *rootNode, int id);
 
-        static void printTreeInOrder(Node *node);
+        void printTreeNode(Node<T> *rootNode, int indent = 1);
 
-    private:
-        static void retrieveAllUser(Node *root);
-
-        static void updateToFile(Node *root, const User &user);
     };
 }
-
 #endif //MINIBANK_DATA_STORE_H

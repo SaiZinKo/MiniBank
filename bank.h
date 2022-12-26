@@ -7,7 +7,7 @@
 
 #include "iostream"
 #include "model/user.h"
-#include "data-store.h"
+#include "user-service.h"
 
 using namespace std;
 
