@@ -13,8 +13,8 @@ using namespace std;
 
 struct Node {
     User data;
-    Node *left;
-    Node *right;
+    Node *left{};
+    Node *right{};
 };
 
 namespace BankData {
@@ -23,13 +23,13 @@ namespace BankData {
     public:
         static Node *createNode(User data);
 
-        static void insert(Node *&root, User data);
+        static void insert(Node *&root, const User& data);
 
-        static Node *search(Node *root, User data);
+        static Node *search(Node *root, const User& data);
 
-        static void update(Node *root, User newData);
+        static void update(Node *root, const User& newData);
 
-        static void deleteUser(Node *&root, User data);
+        static void deleteUser(Node *&root, const User& data);
 
         static void clear(Node *root);
 
@@ -44,7 +44,7 @@ namespace BankData {
     private:
         static void retrieveAllUser(Node *root);
 
-        static void updateToFile(Node *root, User user);
+        static void updateToFile(Node *root, const User& user);
     };
 }
 

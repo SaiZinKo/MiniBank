@@ -3,6 +3,7 @@
 //
 
 #include <fstream>
+#include <utility>
 #include "data-store.h"
 #include "iostream"
 #include "bank.h"
@@ -13,13 +14,13 @@ list <User> userList;
 
 Node *KBankData::createNode(User data) {
     Node *newNode = new Node;
-    newNode->data = data;
+    newNode->data = std::move(data);
     newNode->left = nullptr;
     newNode->right = nullptr;
     return newNode;
 }
 
-void KBankData::insert(Node *&root, User data) {
+void KBankData::insert(Node *&root, const User& data) {
     if (!root) {
         root = createNode(data);
         return;
@@ -31,7 +32,7 @@ void KBankData::insert(Node *&root, User data) {
     }
 }
 
-Node *KBankData::search(Node *root, User data) {
+Node *KBankData::search(Node *root, const User& data) {
     if (!root) {
         return nullptr;
     } else if (root->data.userName == data.userName) {
@@ -43,7 +44,7 @@ Node *KBankData::search(Node *root, User data) {
     }
 }
 
-void KBankData::updateToFile(Node *root, User user) {
+void KBankData::updateToFile(Node *root, const User& user) {
     fstream tempFile;
 
     tempFile.open("tmp_user.txt", ios::app);
@@ -53,9 +54,9 @@ void KBankData::updateToFile(Node *root, User user) {
         exit(1);
     }
 
-    list<User> userList = KBankData::findAll(root);
+    userList= KBankData::findAll(root);
 
-    for (User tmpUser: userList) {
+    for (const User& tmpUser: userList) {
         if (tmpUser.userName == user.userName) {
             tempFile << user.id << ' ' << user.userName << ' ' << user.password << ' ' << user.role << ' '
                      << user.phoneNumber
@@ -77,7 +78,7 @@ void KBankData::updateToFile(Node *root, User user) {
     cout << "User info updated successfully." << endl << endl;
 }
 
-void KBankData::update(Node *root, User newData) {
+void KBankData::update(Node *root, const User& newData) {
     Node *nodeToUpdate = search(root, newData);
     if (nodeToUpdate) {
         nodeToUpdate->data = newData;
@@ -85,7 +86,7 @@ void KBankData::update(Node *root, User newData) {
     }
 }
 
-void KBankData::deleteUser(Node *&root, User data) {
+void KBankData::deleteUser(Node *&root, const User& data) {
     if (!root) {
         return;
     } else if (data.id < root->data.id) {
@@ -124,7 +125,7 @@ void KBankData::clear(Node *node) {
 }
 
 bool KBankData::isExists(Node *&root, User user) {
-    Node *node = search(root, user);
+    Node *node = search(root, std::move(user));
     return node != nullptr;
 }
 

@@ -330,67 +330,22 @@ void KBank::viewAllUsersInfo() {
 }
 
 void KBank::viewAllUsersTransactions() {
-    User user;
-    User *userPtr;
-    fstream file;
-    History history;
-    file.open("user.txt", ios::in);
-
-    if (!file.is_open()) {
-        cout << "File opening error" << endl;
+    User *previousUser;
+    list<User> userList = KBankData::findAll(root);
+    if (userList.size() == 0) {
+        cout << "There is no user data." << endl << endl;
+        return;
     }
-    while (!file.eof()) {
-        file >> user.id >> user.userName >> user.password >> user.role >> user.phoneNumber >> user.email >> user.amount
-             >> user.history;
-
-        userPtr = user.userName == "" ? nullptr : &user;
-        if (userPtr != nullptr) {
-            if (!userPtr->userName.empty()) {
-                if (userPtr->role != "ADMIN") {
-                    showHistory(*userPtr);
-                }
-                user.userName = "";
-            } else {
-                cout << "There is no user data." << endl << endl;
+    for (User &user: userList) {
+        if (user.role != "ADMIN") {
+            if(!previousUser || previousUser->userName != user.userName){
+                cout << "* The transaction history of " << user.userName << endl << endl;
             }
+            showHistory(user);
+            previousUser = &user;
         }
     }
-    file.close();
 }
-
-//void KBank::update(User user) {
-//    fstream tempFile;
-//
-//    tempFile.open("tmp_user.txt", ios::app);
-//
-//    if (!tempFile.is_open()) {
-//        cout << "File opening error" << endl;
-//        exit(1);
-//    }
-//
-//    list<User> userList = KBankData::findAll(root);
-//
-//    for (User tmpUser: userList) {
-//        if (tmpUser.userName == user.userName) {
-//            tempFile << user.id << ' ' << user.userName << ' ' << user.password << ' ' << user.role << ' '
-//                     << user.phoneNumber
-//                     << ' '
-//                     << user.email << ' ' << user.amount << ' ' << user.history << ' ' << '\n';
-//        } else {
-//            tempFile << tmpUser.id << ' ' << tmpUser.userName << ' ' << tmpUser.password << ' ' << tmpUser.role
-//                     << ' '
-//                     << tmpUser.phoneNumber
-//                     << ' ' << tmpUser.email << ' ' << tmpUser.amount << ' ' << tmpUser.history
-//                     << ' '
-//                     << '\n';
-//        }
-//    }
-//
-//    tempFile.close();
-//    remove("user.txt");
-//    rename("tmp_user.txt", "user.txt");
-//    cout << "User info updated successfully." << endl << endl;
-//}
 
 void KBank::showData(User *user) {
     cout << "User Name : " << user->userName << endl;
