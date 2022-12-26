@@ -2,6 +2,9 @@
 // Created by Zin Ko Winn on 1/12/2022.
 //
 
+#ifndef MINIBANK_BANK_H
+#define MINIBANK_BANK_H
+
 #include "iostream"
 #include "model/user.h"
 #include "data-store.h"
@@ -14,9 +17,9 @@ namespace Bank {
     public:
         void registration();
 
-        User *login();
+        User *login() const;
 
-        User findByUserName(const std::string &userName);
+        static User findByUserName(const std::string &userName);
 
         void setCurrentUserName(string userName);
 
@@ -24,17 +27,15 @@ namespace Bank {
 
         void setCurrentUserBalance(int amount);
 
-        int getCurrentUserBalance();
+        int getCurrentUserBalance() const;
 
         void setCurrentUserId(int id);
-
-        int getCurrentUserId();
 
         void viewAllUsersInfo();
 
         void viewAllUsersTransactions();
 
-        bool isAdminUser(User *user);
+        static bool isAdminUser(User *user);
 
         void deposit();
 
@@ -44,23 +45,25 @@ namespace Bank {
 
         void history();
 
-        void changePassword();
+        void changePassword() const;
 
-        void viewProfile();
+        void viewProfile() const;
 
-        bool isExist(std::string userName);
+        bool isExist(const std::string &userName);
 
         static void showData(User *user);
 
         Node *root = nullptr;
+
     private:
         std::string currentUserName;
         int userId;
         int balance;
 
-        void showHistory(User user);
+        void showHistory(const User &user);
 
-        void printHistory(History history, string userName);
+        static void printHistory(const History &history, const string &userName);
     };
-
 }
+
+#endif //MINIBANK_BANK_H

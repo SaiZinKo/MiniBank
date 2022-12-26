@@ -10,7 +10,7 @@
 
 using namespace BankData;
 using namespace Bank;
-list <User> userList;
+list<User> userList;
 
 Node *KBankData::createNode(User data) {
     Node *newNode = new Node;
@@ -20,7 +20,7 @@ Node *KBankData::createNode(User data) {
     return newNode;
 }
 
-void KBankData::insert(Node *&root, const User& data) {
+void KBankData::insert(Node *&root, const User &data) {
     if (!root) {
         root = createNode(data);
         return;
@@ -32,7 +32,7 @@ void KBankData::insert(Node *&root, const User& data) {
     }
 }
 
-Node *KBankData::search(Node *root, const User& data) {
+Node *KBankData::search(Node *root, const User &data) {
     if (!root) {
         return nullptr;
     } else if (root->data.userName == data.userName) {
@@ -44,7 +44,7 @@ Node *KBankData::search(Node *root, const User& data) {
     }
 }
 
-void KBankData::updateToFile(Node *root, const User& user) {
+void KBankData::updateToFile(Node *root, const User &user) {
     fstream tempFile;
 
     tempFile.open("tmp_user.txt", ios::app);
@@ -54,9 +54,9 @@ void KBankData::updateToFile(Node *root, const User& user) {
         exit(1);
     }
 
-    userList= KBankData::findAll(root);
+    list<User> userList = KBankData::findAll(root);
 
-    for (const User& tmpUser: userList) {
+    for (const User &tmpUser: userList) {
         if (tmpUser.userName == user.userName) {
             tempFile << user.id << ' ' << user.userName << ' ' << user.password << ' ' << user.role << ' '
                      << user.phoneNumber
@@ -78,7 +78,7 @@ void KBankData::updateToFile(Node *root, const User& user) {
     cout << "User info updated successfully." << endl << endl;
 }
 
-void KBankData::update(Node *root, const User& newData) {
+void KBankData::update(Node *root, const User &newData) {
     Node *nodeToUpdate = search(root, newData);
     if (nodeToUpdate) {
         nodeToUpdate->data = newData;
@@ -86,7 +86,7 @@ void KBankData::update(Node *root, const User& newData) {
     }
 }
 
-void KBankData::deleteUser(Node *&root, const User& data) {
+void KBankData::deleteUser(Node *&root, const User &data) {
     if (!root) {
         return;
     } else if (data.id < root->data.id) {
