@@ -22,7 +22,7 @@ void adminMenu();
 void userMenu();
 
 int main() {
-//   initialData();
+   initialData();
     loadFileDataToBinaryTree();
     mainMenu();
     return 0;
@@ -64,16 +64,6 @@ void loadFileDataToBinaryTree() {
             }
         }
     }
-//    KBankData::printTreeInOrder(kBank.root);
-    list<User> userList = KBankData::findAll(kBank.root);
-    cout << userList.size() << endl;
-    for(User user : userList){
-        cout << user.userName << endl;
-    }
-//    User *user1 = KBankData::findById(kBank.root, 60319);
-//    if (user1 != nullptr) {
-//        cout << user1->email << endl;
-//    }
     file.close();
 }
 

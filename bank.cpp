@@ -313,7 +313,7 @@ void KBank::viewAllUsersInfo() {
 void KBank::viewAllUsersTransactions() {
     User *previousUser;
     list<User> userList = KBankData::findAll(root);
-    if (userList.empty()) {
+    if (userList.size() == 1) {
         cout << "There is no user data." << endl << endl;
         return;
     }
