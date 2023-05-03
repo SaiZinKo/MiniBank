@@ -337,6 +337,8 @@ void KBank::showData(User *user) {
         cout << "Phone Number : " << user->phoneNumber << endl;
         cout << "Email : " << user->email << endl;
         cout << "Amount : " << user->amount << endl << endl;
+    }else{
+        cout << endl;
     }
 }
 
